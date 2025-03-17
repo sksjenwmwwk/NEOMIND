@@ -1,27 +1,42 @@
-const chatbox = document.getElementById("chatbox");
-const userInput = document.getElementById("userInput");
+const API_URL = "https://omprakash75646357483-neo-ai.hf.space/api/predict"; // ✅ सही API URL
+
+document.getElementById("send").addEventListener("click", sendMessage);
+document.getElementById("user-input").addEventListener("keypress", function (e) {
+    if (e.key === "Enter") sendMessage();
+});
 
 async function sendMessage() {
-    let userMessage = userInput.value.trim();
-    if (!userMessage) return; // खाली Input Ignore करें
-    userInput.value = "";
+    let userInput = document.getElementById("user-input").value.trim();
+    if (userInput === "") return;
 
-    chatbox.innerHTML += `<div><b>You:</b> ${userMessage}</div>`;
+    appendMessage("You", userInput);
+    document.getElementById("user-input").value = "";
+    appendMessage("NEO AI", "⏳ Thinking...");
 
     try {
-        let response = await fetch("https://huggingface.co/spaces/Omprakash75646357483/Neo_ai/api/predict", {
+        const response = await fetch(API_URL, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ inputs: userMessage })
+            body: JSON.stringify({ inputs: userInput })
         });
 
-        let result = await response.json();
-        let botMessage = result[0]?.generated_text || "Sorry, I couldn't understand.";
+        if (!response.ok) throw new Error("Server Error");
 
-        chatbox.innerHTML += `<div><b>NEO AI:</b> ${botMessage}</div>`;
-        chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll last message पर
+        const result = await response.json();
+        document.querySelector(".message:last-child").remove();
+        appendMessage("NEO AI", result[0]?.generated_text || "⚠️ No response from AI.");
     } catch (error) {
-        chatbox.innerHTML += `<div><b>NEO AI:</b> ❌ Error fetching response.</div>`;
+        document.querySelector(".message:last-child").remove();
+        appendMessage("NEO AI", "❌ Error fetching response.");
         console.error("API Error:", error);
     }
 }
+
+function appendMessage(sender, text) {
+    let chatBox = document.getElementById("chat-box");
+    let messageDiv = document.createElement("div");
+    messageDiv.classList.add("message");
+    messageDiv.innerHTML = `<strong>${sender}:</strong> ${text}`;
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+                       }
