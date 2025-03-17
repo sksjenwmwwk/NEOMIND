@@ -3,119 +3,46 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoMind AI</title>
+    <title>NEOMIND AI - Chatbot</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #121212;
-            color: white;
-            text-align: center;
-        }
-        .chat-container {
-            width: 90%;
-            max-width: 400px;
-            margin: auto;
-            background: #222;
-            padding: 20px;
-            border-radius: 10px;
-            margin-top: 50px;
-        }
-        .chat-box {
-            height: 300px;
-            overflow-y: auto;
-            text-align: left;
-            padding: 10px;
-            border: 1px solid #444;
-            background: #333;
-            border-radius: 5px;
-        }
-        .user {
-            color: lime;
-            text-align: right;
-        }
-        .bot {
-            color: cyan;
-            text-align: left;
-        }
-        .input-container {
-            display: flex;
-            margin-top: 10px;
-        }
-        input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #444;
-            border-radius: 5px;
-            outline: none;
-        }
-        button {
-            padding: 10px;
-            background: cyan;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
+        #chatbox { width: 100%; max-width: 600px; height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: auto; }
+        #user-input { width: 80%; padding: 10px; }
+        #send-btn { padding: 10px; cursor: pointer; }
     </style>
 </head>
 <body>
-    <div class="chat-container">
-        <h2>NeoMind AI</h2>
-        <div id="chatBox" class="chat-box">
-            <p class="bot">Hello! How can I assist you today?</p>
-        </div>
-        <div class="input-container">
-            <input type="text" id="userInput" placeholder="Type a message..." />
-            <button id="sendBtn">Send</button>
-        </div>
-    </div>
+
+    <h2>NEOMIND AI - Chatbot</h2>
+    <div id="chatbox"></div>
+
+    <input type="text" id="user-input" placeholder="Type your message...">
+    <button id="send-btn">Send</button>
 
     <script>
-        let apiURL = "https://omprakash75646357483-neo-ai.hf.space/chat"; // ✅ सही API
+        document.getElementById("send-btn").addEventListener("click", sendMessage);
 
-        document.addEventListener("DOMContentLoaded", function () {
-            let sendBtn = document.getElementById("sendBtn");
-            let userInput = document.getElementById("userInput");
-            let chatBox = document.getElementById("chatBox");
+        function sendMessage() {
+            let userMessage = document.getElementById("user-input").value;
+            if (userMessage.trim() === "") return;
 
-            sendBtn.addEventListener("click", sendMessage);
-            userInput.addEventListener("keypress", function (event) {
-                if (event.key === "Enter") sendMessage();
-            });
+            document.getElementById("chatbox").innerHTML += "<p><strong>You:</strong> " + userMessage + "</p>";
 
-            async function sendMessage() {
-                let inputText = userInput.value.trim();
-                if (inputText === "") return;
+            fetch("https://omprakash75646357483-neo-ai.hf.space/run/respond", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ "data": [userMessage, []] })
+            })
+            .then(response => response.json())
+            .then(data => {
+                let botResponse = data.data[0];
+                document.getElementById("chatbox").innerHTML += "<p><strong>Bot:</strong> " + botResponse + "</p>";
+            })
+            .catch(error => console.error("Error:", error));
 
-                chatBox.innerHTML += `<p class="user">${inputText}</p>`;
-                userInput.value = "";
-
-                try {
-                    let response = await fetch(apiURL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            message: inputText,
-                            system_message: "You are a helpful AI assistant.",
-                            max_tokens: 512,
-                            temperature: 0.7,
-                            top_p: 0.95
-                        })
-                    });
-
-                    let data = await response.json();
-                    if (data && data.response) {
-                        chatBox.innerHTML += `<p class="bot">${data.response}</p>`;
-                    } else {
-                        chatBox.innerHTML += `<p class="bot">⚠️ Error: Invalid API Response!</p>`;
-                    }
-                } catch (error) {
-                    chatBox.innerHTML += `<p class="bot">❌ Error: API Not Responding!</p>`;
-                    console.error("API Error:", error);
-                }
-
-                chatBox.scrollTop = chatBox.scrollHeight;
-            }
-        });
+            document.getElementById("user-input").value = "";
+        }
     </script>
+
 </body>
-    </html>
+</html>
