@@ -6,15 +6,16 @@
     <title>NEOMIND AI - Chatbot</title>
     <style>
         body { font-family: Arial, sans-serif; text-align: center; }
-        #chatbox { width: 80%; height: 300px; border: 1px solid black; padding: 10px; overflow-y: scroll; margin: auto; }
-        #userInput { width: 70%; padding: 10px; }
-        #sendButton { padding: 10px; }
+        #chatbox { width: 80%; max-width: 400px; height: 300px; border: 1px solid black; margin: auto; padding: 10px; overflow-y: auto; }
+        #userInput { width: 70%; padding: 5px; }
+        #sendButton { padding: 5px; }
     </style>
 </head>
 <body>
-
     <h1>NEOMIND AI - Chatbot</h1>
-    <div id="chatbox"></div>
+    <div id="chatbox">
+        <p><b>Bot:</b> Hello! How can I help you?</p>
+    </div>
     <input type="text" id="userInput" placeholder="Type your message...">
     <button id="sendButton">Send</button>
 
@@ -22,24 +23,42 @@
         import { Client } from "https://cdn.jsdelivr.net/npm/@gradio/client/+esm";
 
         async function sendMessage() {
-            const userInput = document.getElementById("userInput").value;
+            const userInput = document.getElementById("userInput").value.trim();
             if (!userInput) return;
 
             const chatbox = document.getElementById("chatbox");
             chatbox.innerHTML += `<p><b>You:</b> ${userInput}</p>`;
 
-            const client = await Client.connect("Omprakash75646357483/Neo_ai");
-            const result = await client.predict("/respond", { 
-                message: userInput, 
-                chat_history: [] 
-            });
+            document.getElementById("userInput").value = ""; // Clear input field
 
-            chatbox.innerHTML += `<p><b>Bot:</b> ${result.data[0]}</p>`;
-            document.getElementById("userInput").value = ""; // Clear input
+            try {
+                const client = await Client.connect("Omprakash75646357483/Neo_ai");
+                console.log("✅ Connected to API");
+
+                const result = await client.predict("/respond", { 
+                    message: userInput, 
+                    chat_history: [] 
+                });
+
+                console.log("📢 API Response:", result);
+
+                if (result?.data && result.data.length > 0) {
+                    chatbox.innerHTML += `<p><b>Bot:</b> ${result.data[0]}</p>`;
+                } else {
+                    chatbox.innerHTML += `<p><b>Bot:</b> (No response received)</p>`;
+                }
+            } catch (error) {
+                console.error("❌ API Error:", error);
+                chatbox.innerHTML += `<p><b>Bot:</b> (Error connecting to AI)</p>`;
+            }
+
+            chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to the latest message
         }
 
         document.getElementById("sendButton").addEventListener("click", sendMessage);
+        document.getElementById("userInput").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") sendMessage();
+        });
     </script>
-
 </body>
 </html>
