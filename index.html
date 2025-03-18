@@ -5,10 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEOMIND AI - Chatbot</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; }
-        #chatbox { width: 100%; max-width: 600px; height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: auto; }
-        #user-input { width: 80%; padding: 10px; }
-        #send-btn { padding: 10px; cursor: pointer; }
+        body { font-family: Arial, sans-serif; text-align: center; margin: 20px; background-color: #f0f8ff; }
+        #chatbox { width: 100%; max-width: 600px; height: 400px; overflow-y: auto; border: 1px solid #ccc; padding: 10px; margin: auto; background: white; border-radius: 8px; }
+        #user-input { width: 75%; padding: 10px; border-radius: 5px; border: 1px solid #ccc; }
+        #send-btn { padding: 10px; border-radius: 5px; border: none; background: #007bff; color: white; cursor: pointer; }
+        .user { text-align: right; color: blue; }
+        .bot { text-align: left; color: green; }
     </style>
 </head>
 <body>
@@ -26,7 +28,7 @@
             let userMessage = document.getElementById("user-input").value;
             if (userMessage.trim() === "") return;
 
-            document.getElementById("chatbox").innerHTML += "<p><strong>You:</strong> " + userMessage + "</p>";
+            document.getElementById("chatbox").innerHTML += `<p class="user"><strong>You:</strong> ${userMessage}</p>`;
 
             fetch("https://omprakash75646357483-neo-ai.hf.space/run/respond", {
                 method: "POST",
@@ -36,7 +38,7 @@
             .then(response => response.json())
             .then(data => {
                 let botResponse = data.data[0];
-                document.getElementById("chatbox").innerHTML += "<p><strong>Bot:</strong> " + botResponse + "</p>";
+                document.getElementById("chatbox").innerHTML += `<p class="bot"><strong>Bot:</strong> ${botResponse}</p>`;
             })
             .catch(error => console.error("Error:", error));
 
