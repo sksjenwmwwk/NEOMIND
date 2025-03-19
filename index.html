@@ -3,63 +3,116 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Chat with NEOMIND</title>
+    <title>NEOMIND AI Chat</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; text-align: center; }
-        .chatbox { width: 80%; max-width: 500px; margin: auto; background: #1e1e1e; padding: 20px; border-radius: 10px; }
-        .messages { height: 300px; overflow-y: auto; text-align: left; }
-        .message { padding: 8px; margin: 5px 0; border-radius: 5px; }
-        .user { background: #007bff; color: white; text-align: right; }
-        .bot { background: #444; color: white; text-align: left; }
-        input { width: 80%; padding: 10px; margin-top: 10px; border-radius: 5px; border: none; }
-        button { padding: 10px; margin-left: 5px; border: none; background: #007bff; color: white; border-radius: 5px; cursor: pointer; }
+        body { font-family: Arial, sans-serif; background: #121212; color: white; text-align: center; }
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        h1 { color: #FFA500; }
+        #chatbox { background: #222; padding: 15px; border-radius: 10px; min-height: 300px; text-align: left; overflow-y: auto; }
+        .message { padding: 10px; margin: 5px; border-radius: 5px; max-width: 80%; display: inline-block; }
+        .user { background: #007bff; color: white; text-align: right; float: right; }
+        .bot { background: #444; text-align: left; color: white; float: left; }
+        .clearfix { clear: both; }
+
+        /* Input Box with Send Button */
+        .input-container {
+            display: flex;
+            align-items: center;
+            background: #333;
+            border-radius: 20px;
+            padding: 5px;
+            margin-top: 10px;
+        }
+        .input-container input {
+            flex: 1;
+            border: none;
+            background: transparent;
+            color: white;
+            padding: 10px;
+            outline: none;
+        }
+        .input-container button {
+            background: orange;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 10px 15px;
+            border-radius: 50%;
+        }
+
+        /* Typing Animation */
+        .thinking { display: inline-block; }
+        .thinking span {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin: 2px;
+            background: white;
+            border-radius: 50%;
+            animation: typing 1s infinite;
+        }
+        .thinking span:nth-child(2) { animation-delay: 0.2s; }
+        .thinking span:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0% { opacity: 0.3; }
+            50% { opacity: 1; }
+            100% { opacity: 0.3; }
+        }
     </style>
 </head>
 <body>
-
-    <h1>Chat with NEOMIND</h1>
-    <div class="chatbox">
-        <div class="messages" id="messages"></div>
-        <input type="text" id="userInput" placeholder="Type a message...">
-        <button onclick="sendMessage()">Send</button>
+    <div class="container">
+        <h1>Chat with NEOMIND</h1>
+        <div id="chatbox"></div>
+        <div class="clearfix"></div>
+        
+        <!-- Input Box with Send Button Inside -->
+        <div class="input-container">
+            <input id="userInput" type="text" placeholder="Type a message..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">➤</button>
+        </div>
     </div>
 
     <script>
+        function handleKeyPress(event) {
+            if (event.key === "Enter") {
+                sendMessage();
+            }
+        }
+
         async function sendMessage() {
             let userInput = document.getElementById("userInput").value;
             if (!userInput) return;
-            
-            let messagesDiv = document.getElementById("messages");
-            
-            // Show user message
-            let userMessage = document.createElement("div");
-            userMessage.className = "message user";
-            userMessage.innerText = userInput;
-            messagesDiv.appendChild(userMessage);
-            
-            // Clear input field
+
+            let chatbox = document.getElementById("chatbox");
+            chatbox.innerHTML += `<div class='message user'>${userInput}</div><div class="clearfix"></div>`;
+
+            // Typing Animation Add
+            let thinkingDiv = document.createElement("div");
+            thinkingDiv.className = "message bot";
+            thinkingDiv.innerHTML = "<span class='thinking'><span></span><span></span><span></span></span>";
+            chatbox.appendChild(thinkingDiv);
             document.getElementById("userInput").value = "";
-            
-            // Call Hugging Face API
-            let response = await fetch("https://omprakash75646357483-api.hf.space/run/predict", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ data: [userInput] })
-            });
 
-            let data = await response.json();
-            let botResponse = data.data[0];
+            try {
+                let response = await fetch("https://omprakash75646357483-api.hf.space/run/predict", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ data: [userInput] })
+                });
 
-            // Show bot response
-            let botMessage = document.createElement("div");
-            botMessage.className = "message bot";
-            botMessage.innerText = botResponse;
-            messagesDiv.appendChild(botMessage);
+                let result = await response.json();
+                let botResponse = result.data[0];
 
-            // Auto-scroll to latest message
-            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+                // Remove Typing Animation
+                chatbox.removeChild(thinkingDiv);
+                chatbox.innerHTML += `<div class='message bot'>${botResponse}</div><div class="clearfix"></div>`;
+            } catch (error) {
+                chatbox.removeChild(thinkingDiv);
+                chatbox.innerHTML += `<div class='message bot'>Error: Unable to connect</div><div class="clearfix"></div>`;
+            }
         }
     </script>
-
 </body>
 </html>
